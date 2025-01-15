@@ -1,7 +1,7 @@
 package router
 
 import (
-	"chat-room/api/v1"
+	v1 "chat-room/api/v1"
 	"chat-room/pkg/common/response"
 	"chat-room/pkg/global/log"
 	"net/http"
@@ -33,13 +33,10 @@ func NewRouter() *gin.Engine {
 
 		group.GET("/message", v1.GetMessage)
 
-		group.GET("/file/:fileName", v1.GetFile)
-		group.POST("/file", v1.SaveFile)
-
-		group.GET("/group/:uuid", v1.GetGroup)
-		group.POST("/group/:uuid", v1.SaveGroup)
-		group.POST("/group/join/:userUuid/:groupUuid", v1.JoinGroup)
-		group.GET("/group/user/:uuid", v1.GetGroupUsers)
+		group.GET("/group/:account", v1.GetGroup)
+		group.POST("/group/:account", v1.SaveGroup)
+		group.POST("/group/join/:account/:groupUuid", v1.JoinGroup)
+		group.GET("/group/user/:groupUuid", v1.GetGroupUsers)
 
 		group.GET("/socket.io", socket)
 	}

@@ -3,7 +3,7 @@ appName = "chat_room"
 [mysql]
 host = "127.0.0.1"
 name = "chat"
-password = "root1234"
+password = "jfkdls"
 port = 3306
 tablePrefix = ""
 user = "root"

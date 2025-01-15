@@ -1,6 +1,6 @@
 package request
 
 type FriendRequest struct {
-	Uuid           string
-	FriendUsername string
+	Account       string
+	FriendAccount string
 }

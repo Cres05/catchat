@@ -71,8 +71,8 @@ func (s *Server) Start() {
 				// 一般消息，比如文本消息，视频文件消息等
 				if msg.ContentType >= constant.TEXT && msg.ContentType <= constant.VIDEO {
 					// 保存消息只会在存在socket的一个端上进行保存，防止分布式部署后，消息重复问题
-					_, exits := s.Clients[msg.From]
-					if exits {
+					_, exist := s.Clients[msg.From]
+					if exist {
 						saveMessage(msg)
 					}
 
@@ -116,13 +116,13 @@ func (s *Server) Start() {
 // 发送给群组消息,需要查询该群所有人员依次发送
 func sendGroupMessage(msg *protocol.Message, s *Server) {
 	// 发送给群组的消息，查找该群所有的用户进行发送
-	users := service.GroupService.GetUserIdByGroupUuid(msg.To)
-	for _, user := range users {
-		if user.Uuid == msg.From {
+	accounts := service.GroupService.GetUserIdByGroupUuid(msg.To)
+	for _, account := range accounts {
+		if account == msg.From {
 			continue
 		}
 
-		client, ok := s.Clients[user.Uuid]
+		client, ok := s.Clients[account]
 		if !ok {
 			continue
 		}

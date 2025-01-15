@@ -1,8 +1,9 @@
 package model
 
 import (
-	"gorm.io/plugin/soft_delete"
 	"time"
+
+	"gorm.io/plugin/soft_delete"
 )
 
 type Group struct {
@@ -11,7 +12,7 @@ type Group struct {
 	CreatedAt time.Time             `json:"createAt"`
 	UpdatedAt time.Time             `json:"updatedAt"`
 	DeletedAt soft_delete.DeletedAt `json:"deletedAt"`
-	UserId    int32                 `json:"userId" gorm:"index;comment:'群主ID'"`
+	Account   string                `json:"account" gorm:"comment:'群主账号'"`
 	Name      string                `json:"name" gorm:"type:varchar(150);comment:'群名称"`
 	Notice    string                `json:"notice" gorm:"type:varchar(350);comment:'群公告"`
 }

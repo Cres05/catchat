@@ -11,8 +11,8 @@ import (
 
 // 获取分组列表
 func GetGroup(c *gin.Context) {
-	uuid := c.Param("uuid")
-	groups, err := service.GroupService.GetGroups(uuid)
+	account := c.Param("account")
+	groups, err := service.GroupService.GetGroups(account)
 	if err != nil {
 		c.JSON(http.StatusOK, response.FailMsg(err.Error()))
 		return
@@ -23,19 +23,19 @@ func GetGroup(c *gin.Context) {
 
 // 保存分组列表
 func SaveGroup(c *gin.Context) {
-	uuid := c.Param("uuid")
+	account := c.Param("account")
 	var group model.Group
 	c.ShouldBindJSON(&group)
 
-	service.GroupService.SaveGroup(uuid, group)
+	service.GroupService.SaveGroup(account, group)
 	c.JSON(http.StatusOK, response.SuccessMsg(nil))
 }
 
 // 加入组别
 func JoinGroup(c *gin.Context) {
-	userUuid := c.Param("userUuid")
+	userAccount := c.Param("account")
 	groupUuid := c.Param("groupUuid")
-	err := service.GroupService.JoinGroup(groupUuid, userUuid)
+	err := service.GroupService.JoinGroup(groupUuid, userAccount)
 	if err != nil {
 		c.JSON(http.StatusOK, response.FailMsg(err.Error()))
 		return
@@ -45,7 +45,7 @@ func JoinGroup(c *gin.Context) {
 
 // 获取组内成员信息
 func GetGroupUsers(c *gin.Context) {
-	groupUuid := c.Param("uuid")
+	groupUuid := c.Param("groupUuid")
 	users := service.GroupService.GetUserIdByGroupUuid(groupUuid)
 	c.JSON(http.StatusOK, response.SuccessMsg(users))
 }

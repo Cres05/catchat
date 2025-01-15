@@ -25,7 +25,7 @@ func (u *userService) Register(user *model.User) error {
 	if userCount > 0 {
 		return errors.New("user already exists")
 	}
-	user.Uuid = uuid.New().String()
+	user.Account = uuid.New().String()
 	user.CreateAt = time.Now()
 	user.DeleteAt = 0
 
@@ -42,7 +42,7 @@ func (u *userService) Login(user *model.User) bool {
 	db.First(&queryUser, "username = ?", user.Username)
 	log.Logger.Debug("queryUser", log.Any("queryUser", queryUser))
 
-	user.Uuid = queryUser.Uuid
+	user.Account = queryUser.Account
 
 	return queryUser.Password == user.Password
 }
@@ -67,7 +67,7 @@ func (u *userService) ModifyUserInfo(user *model.User) error {
 func (u *userService) GetUserDetails(uuid string) model.User {
 	var queryUser *model.User
 	db := pool.GetDB()
-	db.Select("uuid", "username", "nickname", "avatar").First(&queryUser, "uuid = ?", uuid)
+	db.Select("account", "username", "nickname", "avatar").First(&queryUser, "account = ?", uuid)
 	return *queryUser
 }
 
@@ -91,49 +91,59 @@ func (u *userService) GetUserList(uuid string) []model.User {
 	db := pool.GetDB()
 
 	var queryUser *model.User
-	db.First(&queryUser, "uuid = ?", uuid)
+	db.First(&queryUser, "account = ?", uuid)
 	var nullId int32 = 0
 	if nullId == queryUser.Id {
 		return nil
 	}
 
 	var queryUsers []model.User
-	db.Raw("SELECT u.username, u.uuid, u.avatar FROM user_friends AS uf JOIN users AS u ON uf.friend_id = u.id WHERE uf.user_id = ?", queryUser.Id).Scan(&queryUsers)
+	db.Raw("SELECT u.username, u.account, u.avatar FROM user_friends AS uf JOIN users AS u ON uf.friend_id = u.id WHERE uf.user_id = ?", queryUser.Id).Scan(&queryUsers)
 
 	return queryUsers
 }
 
 func (u *userService) AddFriend(userFriendRequest *request.FriendRequest) error {
-	var queryUser *model.User
 	db := pool.GetDB()
-	db.First(&queryUser, "uuid = ?", userFriendRequest.Uuid)
-	log.Logger.Debug("queryUser", log.Any("queryUser", queryUser))
-	var nullId int32 = 0
-	if nullId == queryUser.Id {
-		return errors.New("用户不存在")
-	}
 
-	var friend *model.User
-	db.First(&friend, "username = ?", userFriendRequest.FriendUsername)
-	if nullId == friend.Id {
-		return errors.New("已添加该好友")
-	}
+	// 使用事务
+	tx := db.Begin()
 
-	userFriend := model.UserFriend{
-		UserId:   queryUser.Id,
-		FriendId: friend.Id,
-	}
+	// // 查询用户
+	// var queryUser model.User
+	// if err := tx.First(&queryUser, "uuid = ?", userFriendRequest.Uuid).Error; err != nil {
+	// 	tx.Rollback()
+	// 	return errors.New("用户不存在")
+	// }
 
-	var userFriendQuery *model.UserFriend
-	db.First(&userFriendQuery, "user_id = ? and friend_id = ?", queryUser.Id, friend.Id)
-	if userFriendQuery.ID != nullId {
+	// // 查询好友
+	// var friend model.User
+	// if err := tx.First(&friend, "username = ?", userFriendRequest.FriendUsername).Error; err != nil {
+	// 	tx.Rollback()
+	// 	return errors.New("好友不存在")
+	// }
+
+	// 检查好友关系
+	var userFriendQuery model.UserFriend
+	if err := tx.First(&userFriendQuery, "user_account = ? and friend_account = ?", userFriendRequest.Account, userFriendRequest.FriendAccount).Error; err == nil {
+		tx.Rollback()
 		return errors.New("该用户已经是你好友")
 	}
 
-	db.AutoMigrate(&userFriend)
-	db.Save(&userFriend)
-	log.Logger.Debug("userFriend", log.Any("userFriend", userFriend))
+	// 保存好友关系
+	userFriend := model.UserFriend{
+		UserAccount:   userFriendRequest.Account,
+		FriendAccount: userFriendRequest.FriendAccount,
+	}
+	if err := tx.Create(&userFriend).Error; err != nil {
+		tx.Rollback()
+		return errors.New("添加好友失败")
+	}
 
+	// 提交事务
+	tx.Commit()
+
+	log.Logger.Debug("userFriend", log.Any("userFriend", userFriend))
 	return nil
 }
 

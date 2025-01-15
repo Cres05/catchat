@@ -1,5 +1,7 @@
 CREATE DATABASE chat;
 
+USE chat;
+
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
     `id` int NOT NULL AUTO_INCREMENT COMMENT 'id',
@@ -82,3 +84,12 @@ CREATE TABLE  IF NOT EXISTS `group_members` (
   KEY `idx_group_members_user_id` (`user_id`),
   KEY `idx_group_members_group_id` (`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT '群组成员表';
+
+
+CREATE TABLE `group_message_read_status` (
+    `group_id` BIGINT NOT NULL,             -- 群聊 ID
+    `account` BIGINT NOT NULL,              -- 用户 ID
+    `last_read_message_id` BIGINT NOT NULL, -- 用户最后读取的消息 ID
+    `last_read_time` DATETIME NOT NULL,     -- 最后读取时间
+    UNIQUE (`message_id`, `user_id`)       -- 群聊 ID 和用户 ID 的唯一性约束
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT '消息状态表'
