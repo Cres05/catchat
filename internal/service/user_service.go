@@ -98,7 +98,7 @@ func (u *userService) GetUserList(uuid string) []model.User {
 	}
 
 	var queryUsers []model.User
-	db.Raw("SELECT u.username, u.account, u.avatar FROM user_friends AS uf JOIN users AS u ON uf.friend_id = u.id WHERE uf.user_id = ?", queryUser.Id).Scan(&queryUsers)
+	db.Raw("SELECT u.username, u.account, u.avatar FROM user_friends AS uf JOIN users AS u ON uf.friend_account = u.account WHERE uf.user_account = ?", queryUser.Account).Scan(&queryUsers)
 
 	return queryUsers
 }

@@ -75,21 +75,21 @@ func (g *groupService) GetUserIdByGroupUuid(groupUuid string) []string {
 	return accounts
 }
 
-func (g *groupService) JoinGroup(groupUuid, userUuid string) error {
-	var user model.User
+func (g *groupService) JoinGroup(groupUuid, userAccount string) error {
+	// var user model.User
 	db := pool.GetDB()
-	db.First(&user, "uuid = ?", userUuid)
-	if user.Id <= 0 {
-		return errors.New("用户不存在")
-	}
+	// db.First(&user, "uuid = ?", userUuid)
+	// if user.Id <= 0 {
+	// 	return errors.New("用户不存在")
+	// }
 
 	var group model.Group
 	db.First(&group, "uuid = ?", groupUuid)
-	if user.Id <= 0 {
+	if group.ID <= 0 {
 		return errors.New("群组不存在")
 	}
 	var groupMember model.GroupMember
-	db.First(&groupMember, "user_id = ? and group_id = ?", user.Id, group.ID)
+	db.First(&groupMember, "account = ? and group_id = ?", userAccount, group.ID)
 	if groupMember.ID > 0 {
 		return errors.New("已经加入该群组")
 	}
@@ -98,7 +98,7 @@ func (g *groupService) JoinGroup(groupUuid, userUuid string) error {
 	// 	nickname = user.Username
 	// }
 	groupMemberInsert := model.GroupMember{
-		Account: user.Account,
+		Account: userAccount,
 		GroupId: group.ID,
 		// Nickname: nickname,
 		Mute: 0,
